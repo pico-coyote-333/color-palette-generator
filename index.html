@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Palette Generator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; font-family: system-ui, sans-serif; }
+  body { min-height: 100vh; display: flex; flex-direction: column; }
+  #palette { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); }
+  .swatch { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 1.5rem .5rem; cursor: pointer; transition: flex .2s; }
+  .swatch:hover { filter: brightness(1.05); }
+  .hex { background: rgba(0,0,0,.35); color: #fff; padding: .3rem .7rem; border-radius: 6px; font: 14px ui-monospace, monospace; }
+  .lock { margin-top: .4rem; background: none; border: 0; font-size: 1.1rem; cursor: pointer; }
+  #bar { display: flex; gap: .8rem; justify-content: center; align-items: center; padding: 1rem; background: #2c2418; color: #fdf3ee; }
+  #gen { padding: .6rem 1.4rem; border: 0; border-radius: 8px; background: #e07a3f; color: #fff; font-size: 1rem; cursor: pointer; }
+  #msg { font-size: .85rem; opacity: .7; min-height: 1.2em; }
+</style>
+</head>
+<body>
+<div id="palette"></div>
+<div id="bar"><button id="gen">Generate (space)</button><span id="msg"></span></div>
+<script>
+const palette = document.getElementById('palette'), msg = document.getElementById('msg');
+let colors = [];
+function randHex() { return '#' + Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'); }
+function generate() {
+  colors = colors.length ? colors.map(c => c.locked ? c : { hex: randHex(), locked: false }) : Array.from({length:5}, () => ({ hex: randHex(), locked: false }));
+  render();
+}
+function render() {
+  palette.innerHTML = '';
+  colors.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'swatch'; d.style.background = c.hex;
+    const h = document.createElement('span'); h.className = 'hex'; h.textContent = c.hex;
+    const l = document.createElement('button'); l.className = 'lock'; l.textContent = c.locked ? '\u{1F512}' : '\u{1F513}';
+    l.onclick = e => { e.stopPropagation(); c.locked = !c.locked; render(); };
+    d.onclick = () => { navigator.clipboard.writeText(c.hex).then(() => { msg.textContent = c.hex + ' copied'; setTimeout(() => msg.textContent = '', 1500); }); };
+    d.append(h, l); palette.append(d);
+  });
+}
+document.getElementById('gen').onclick = generate;
+document.addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); generate(); } });
+generate();
+</script>
+</body>
+</html>
